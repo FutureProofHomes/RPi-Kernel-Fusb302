@@ -1,116 +1,78 @@
-PACKAGE_NAME  ?= satellite1-rpi-sdk
-SDK_VERSION   ?= 1.0
-ARCH          ?= arm64
+# Makefile for building Raspberry Pi kernel .deb packages via Docker
 
+# ----- Configuration -------------------------------------------------------
 DOCKER        ?= docker
+IMAGE_NAME    ?= rpi-kernel-builder
 PLATFORM      ?= linux/arm64
-DOCKER_MAKE   ?= docker/Makefile
-DOCKER_IMAGE  ?= satellite1-deb-builder
 
-OUT_DIR       ?= ${PWD}/build-assets
-DEB_TARGET    := ${OUT_DIR}/$(PACKAGE_NAME)_$(SDK_VERSION)_$(ARCH).deb
+# Path to kernel config on the host (override with: make deb CONFIG=/path/to/config)
+THIS_MAKEFILE := $(abspath $(lastword $(MAKEFILE_LIST)))
+MAKE_DIR      := $(dir $(THIS_MAKEFILE))
+CONFIG        ?= $(MAKE_DIR)/config/kernel.config
 
-BUILD_DIR     ?= ${PWD}/build/sdk
-DEBIAN_DIR    := ${BUILD_DIR}/debian
+# Where to put the resulting .deb files
+OUT_DIR       ?= $(PWD)/out
 
-LOCAL_VENV    ?= ${PWD}/.venv
+# Extra env you might want to pass into the build script
+# e.g.: make deb LOCALVERSION=-fusb302 KDEB_PKGVERSION=2
+LOCALVERSION    ?= -fusb302-rpi-v8
+EXTRAVERSION    ?= ""
+KDEB_PKGVERSION ?= 2
+# ----- Targets -------------------------------------------------------------
 
-# --- Metadata ---
-PYPROJ_VERSION := $(shell python -m setuptools_scm)
-PYPROJ_RELEASE := $(shell python -m setuptools_scm --strip-dev)
+.PHONY: help image deb shell clean-out clean-all
 
-GIT_NAME := $(shell git config user.name)
-GIT_EMAIL := $(shell git config user.email)
+help:
+	@echo "Targets:"
+	@echo "  make deb           Build kernel .deb packages using Docker"
+	@echo "  make image         Build the Docker image only"
+	@echo "  make shell         Open an interactive shell inside the build container"
+	@echo "  make clean-out     Remove ./out (deb output directory)"
+	@echo "  make clean-all     Remove ./out and the Docker image"
+	@echo ""
+	@echo "Variables (override like: make deb CONFIG=/path/to/config):"
+	@echo "  CONFIG=$(CONFIG)"
+	@echo "  OUT_DIR=$(OUT_DIR)"
+	@echo "  IMAGE_NAME=$(IMAGE_NAME)"
+	@echo "  PLATFORM=$(PLATFORM)"
+	@echo "  LOCALVERSION=$(LOCALVERSION)"
+	@echo "  KDEB_PKGVERSION=$(KDEB_PKGVERSION)"
 
-# --- check for uncomitted changes ---
-.PHONY: verify-git-is-clean
-verify-git-is-clean:
-ifndef ALLOW_DIRTY
-	@echo "Checking for uncomitted changes..."
-	@if ! git diff --quiet --ignore-submodules --; then \
-	  echo "ERROR: Working tree is dirty. Commit or stash changes first."; \
-	  echo "       (override with ALLOW_DIRTY=1)"; \
-	  exit 1; \
+# Build the Docker image with the kernel tree and build script
+image: Dockerfile build-rpi-kernel-deb.sh
+	$(DOCKER) build --platform=$(PLATFORM) -t $(IMAGE_NAME) .
+
+# Main target: build .deb packages via Docker
+deb: image
+	@if [ ! -f "$(CONFIG)" ]; then \
+		echo "ERROR: CONFIG file not found: $(CONFIG)"; \
+		echo "       Set CONFIG=... or place kernel.config in ./config"; \
+		exit 1; \
 	fi
-else
-    @echo "Skipping clean-tree check (ALLOW_DIRTY=$(ALLOW_DIRTY))"
-endif
-
-.PHONY: print-meta
-print-meta:
-	@echo "PYPROJ_VERSION=$(PYPROJ_VERSION)" 
-	@echo "GIT_NAME=$(GIT_NAME)"
-	@echo "GIT_EMAIL=$(GIT_EMAIL)"
-
-.PHONY: all shell deb docker-image clean
-
-all: $(DEB_TARGET) build
-
-deb: $(DEB_TARGET)
-
-docker-image:
-	$(MAKE) -C ./docker deb-image
-
-build: verify-git-is-clean | $(OUT_DIR)
-	$(DOCKER) run --rm -it \
-		-v "${PWD}":/work \
-		-v "${OUT_DIR}":/out \
-		$(DOCKER_IMAGE) \
-		/usr/bin/python3 -m build --outdir /out
-
-$(OUT_DIR):
-	@echo "Creating $(OUT_DIR)"
 	mkdir -p "$(OUT_DIR)"
-	echo "*" > "$(OUT_DIR)/.gitignore"
-
-# build the wheel file and wrap it into a .deb package
-$(DEB_TARGET): docker-image verify-git-is-clean $(DEBIAN_DIR) | $(OUT_DIR)
-	mkdir -p "$(OUT_DIR)"
+	echo "*" > "$(OUT_DIR)"/.gitignore
 	$(DOCKER) run --rm --platform=$(PLATFORM) \
-	  -v "$(BUILD_DIR)":/work/src \
-	  -v "$(OUT_DIR)":/out \
-	  -v "${PWD}":/project \
-	  -w /work/src \
-	  $(DOCKER_IMAGE) \
-	  bash -lc ' \
-	  	dpkg-buildpackage -b -us -uc && \
-		cp ../*.deb debian/.wheelhouse/satellite1*.whl /out'
-	@echo
-	@echo "Built package: $(DEB_TARGET)"
-
-$(DEBIAN_DIR):
-	@echo "Creating $(BUILD_DIR)"
-	mkdir -p "$(BUILD_DIR)"
-	echo "*" > "$(BUILD_DIR)/.gitignore"
-	cp -r "debian" "$(BUILD_DIR)"
-	cp -r "etc" "$(BUILD_DIR)"
+		-e LOCALVERSION="$(LOCALVERSION)" \
+		-e EXTRAVERSION="$(EXTRAVERSION)" \
+		-e KDEB_PKGVERSION="$(KDEB_PKGVERSION)" \
+		-v "$(dir $(CONFIG))":/config:ro \
+		-v "$(OUT_DIR)":/out \
+		$(IMAGE_NAME) \
+		/usr/local/bin/build-rpi-kernel-deb.sh
 
 
-
-$(LOCAL_VENV):
-	python3 -m venv $(LOCAL_VENV)
-	$(LOCAL_VENV)/bin/pip install --upgrade pip
-	$(LOCAL_VENV)/bin/pip install -e .
-
-
-.PHONY: kernel-pkg
-kernel-pkg: $(OUR_DIR)
-	$(MAKE) -C ./sys-packages/rpi-kernel-fusb302 deb OUT_DIR="$(OUT_DIR)"
-
-.PHONY: rpi-setup-deb
-rpi-setup-deb: $(OUT_DIR)
-	$(MAKE) -C ./sys-packages/satellite1-rpi-setup deb OUT_DIR="$(OUT_DIR)"
-
-clean:
-	rm -rf "$(BUILD_DIR)" "$(DEB_TARGET)"
-
-shell: docker-image
+# Drop into a shell inside the build container (for debugging / manual makes)
+shell: image
 	$(DOCKER) run --rm -it \
-		-v "${PWD}":/work \
-		-e "EDITOR=/usr/bin/vim" \
-		-e "DEBEMAIL=$(GIT_EMAIL)" \
-		-e "DEBFULLNAME=$(GIT_NAME)" \
-		-e "PRJ_VER=$(PYPROJ_RELEASE)" \
-		$(DOCKER_IMAGE) \
+		-e LOCALVERSION="$(LOCALVERSION)" \
+		-e KDEB_PKGVERSION="$(KDEB_PKGVERSION)" \
+		-v "$(dir $(CONFIG))":/config:ro \
+		-v "$(OUT_DIR)":/out \
+		$(IMAGE_NAME) \
 		/bin/bash
 
+clean-out:
+	rm -rf "$(OUT_DIR)"
+
+clean-all: clean-out
+	-$(DOCKER) rmi $(IMAGE_NAME) || true
