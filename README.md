@@ -2,6 +2,10 @@
 
 Builds a Debian-packaged Raspberry Pi kernel with USB-C Power Delivery (FUSB302) support enabled for the Satellite1 HAT.
 
+> **⚠️ Early-stage development:**
+> This is early-stage experimental software. No official support is provided yet. 
+> For issues and feature requests, open an issue on the GitHub repository: https://github.com/futureproofhomes/Satellite1-RPi/issues
+
 ## Overview
 
 The default Raspberry Pi OS kernel does **not** include USB-C Power Delivery support. This repository provides a custom kernel built from the Raspberry Pi Linux 6.18.y branch with the necessary drivers enabled as modules:
@@ -228,4 +232,4 @@ See the top-level LICENSE file. This package contains Raspberry Pi Linux kernel 
 
 ## Repository
 
-https://github.com/futureproofhomes/Satellite1-RPi/tree/main/rpi-kernel-fusb302
+https://github.com/futureproofhomes/Satellite1-RPi/
