@@ -40,7 +40,7 @@ help:
 
 # Build the Docker image with the kernel tree and build script
 image: Dockerfile build-rpi-kernel-deb.sh
-	$(DOCKER) build --platform=$(PLATFORM) -t $(IMAGE_NAME) .
+	$(DOCKER) buildx build --platform=$(PLATFORM) --load -t $(IMAGE_NAME) .
 
 # Main target: build .deb packages via Docker
 deb: image
