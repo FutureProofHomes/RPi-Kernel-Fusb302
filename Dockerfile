@@ -26,8 +26,8 @@ RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y \
 
 WORKDIR /usr/src
 
-# Clone Raspberry Pi Linux (6.18 branch)
-RUN git clone --depth=1 -b rpi-6.18.y https://github.com/raspberrypi/linux.git rpi-linux
+# Clone Raspberry Pi Linux (specific tag in order to pin to a kernel version)
+RUN git clone --depth=1 -b stable_20260609 https://github.com/raspberrypi/linux.git rpi-linux
 
 WORKDIR /usr/src/rpi-linux
 
