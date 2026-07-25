@@ -19,11 +19,11 @@ The default Raspberry Pi OS kernel does **not** include USB-C Power Delivery sup
 
 The build produces standard Debian kernel packages:
 
-- `linux-image-6.18.29-fusb302-rpi-v8_2_arm64.deb` — kernel image and modules
-- `linux-headers-6.18.29-fusb302-rpi-v8_2_arm64.deb` — development headers (optional)
+- `linux-image-6.18.34-fusb302-rpi-v8_2_arm64.deb` — kernel image and modules
+- `linux-headers-6.18.34-fusb302-rpi-v8_2_arm64.deb` — development headers (optional)
 
-The version string `6.18.29-fusb302-rpi-v8` consists of:
-- Base version: `6.18.29` (Raspberry Pi branch revision)
+The version string `6.18.34-fusb302-rpi-v8` consists of:
+- Base version: `6.18.34` (Raspberry Pi branch revision)
 - Local version suffix: `-fusb302-rpi-v8`
 - Debian revision: `2` (the third component in the `.deb` filename)
 
@@ -34,7 +34,7 @@ The default Raspberry Pi OS kernel lacks USB-C Power Delivery support.
 Install the custom kernel package:
 
 ```bash
-sudo dpkg -i linux-image-6.18.29-fusb302-rpi-v8_*_arm64.deb
+sudo dpkg -i linux-image-6.18.34-fusb302-rpi-v8_*_arm64.deb
 ```
 
 The kernel enables these modules:
@@ -56,7 +56,7 @@ Verify after reboot:
 
 ```bash
 uname -r
-# Should display: 6.18.29-fusb302-rpi-v8
+# Should display: 6.18.34-fusb302-rpi-v8
 ```
 
 4. Check that FUSB302 module is loaded:
@@ -131,9 +131,9 @@ Built packages appear in `out/`:
 
 ```
 out/
-├── linux-image-6.18.29-fusb302-rpi-v8_2_arm64.deb
-├── linux-headers-6.18.29-fusb302-rpi-v8_2_arm64.deb
-└── linux-libc-dev-arm64-cross_6.18.29-2_arm64.deb (if cross-built)
+├── linux-image-6.18.34-fusb302-rpi-v8_2_arm64.deb
+├── linux-headers-6.18.34-fusb302-rpi-v8_2_arm64.deb
+└── linux-libc-dev-arm64-cross_6.18.34-2_arm64.deb (if cross-built)
 ```
 
 ### Build variables
