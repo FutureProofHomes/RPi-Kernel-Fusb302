@@ -55,6 +55,7 @@ if [[ "$kernel_version" != "$EXPECTED_KERNEL_VERSION" ]]; then
   echo "ERROR: expected kernel $EXPECTED_KERNEL_VERSION, got $kernel_version" >&2
   exit 1
 fi
+kernel_release="$(make -s ARCH="$ARCH" kernelrelease)"
 
 for option in CONFIG_TYPEC CONFIG_TYPEC_TCPM CONFIG_TYPEC_TCPCI CONFIG_TYPEC_FUSB302; do
   if ! grep -qx "${option}=m" .config; then
@@ -70,16 +71,26 @@ make -j"$JOBS" \
   KDEB_PKGVERSION="$KDEB_PKGVERSION" \
   bindeb-pkg
 
-echo "==> Copying .deb packages to $OUT_DIR..."
-# Debian packages are created in the parent directory of the kernel tree (/usr/src)
-cp -v /usr/src/*.deb "$OUT_DIR"/
+echo "==> Copying image and headers packages to $OUT_DIR..."
+# bindeb-pkg also generates linux-libc-dev, which is not needed for this kernel.
+shopt -s nullglob
+packages=(
+  /usr/src/linux-image-"$kernel_release"_*.deb
+  /usr/src/linux-headers-"$kernel_release"_*.deb
+)
+if (( ${#packages[@]} != 2 )); then
+  echo "ERROR: expected one image and one headers package for $kernel_release" >&2
+  printf 'Found: %s\n' "${packages[@]:-none}" >&2
+  exit 1
+fi
+cp -v "${packages[@]}" "$OUT_DIR"/
 
 cat > "$OUT_DIR/build-manifest.txt" <<EOF
 target=$TARGET
 kernel_ref=$KERNEL_REF
 resolved_commit=$(git rev-parse HEAD)
 kernel_version=$kernel_version
-kernel_release=$(make -s ARCH="$ARCH" kernelrelease)
+kernel_release=$kernel_release
 localversion=$LOCALVERSION
 kdeb_pkgversion=$KDEB_PKGVERSION
 config_sha256=$(sha256sum .config | cut -d' ' -f1)

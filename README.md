@@ -35,12 +35,15 @@ make deb TARGET=trixie
 `trixie` is the default target, so `make deb` builds the Trixie package.
 
 Artifacts are written to `out/<target>/`, together with
-`build-manifest.txt`. The package names are derived from the selected source,
-for example:
+`build-manifest.txt`. Each build exports the kernel image and matching headers
+package; `linux-libc-dev` is not published. The package names are derived from
+the selected source, for example:
 
 ```text
 linux-image-6.12.96-fusb302-bookworm-rpi-v8_2_arm64.deb
+linux-headers-6.12.96-fusb302-bookworm-rpi-v8_2_arm64.deb
 linux-image-6.18.34-fusb302-trixie-rpi-v8_2_arm64.deb
+linux-headers-6.18.34-fusb302-trixie-rpi-v8_2_arm64.deb
 ```
 
 ## Installation
@@ -50,6 +53,9 @@ Install the image package with APT so dependencies are resolved normally:
 ```sh
 sudo apt install ./linux-image-<release>_2_arm64.deb
 ```
+
+Install the matching `linux-headers-<release>` package only when the system
+uses DKMS or builds other out-of-tree kernel modules.
 
 Debian's `raspi-firmware` package provides the kernel post-install hook. It
 copies the newest `-rpi-v8` image to `/boot/firmware/kernel8.img`. After
@@ -67,3 +73,6 @@ PD contract are validated.
 CI builds Bookworm and Trixie on every change and publishes both only from a
 repository release tag. The Raspberry Pi Linux source refs are updated only
 through a reviewed change followed by hardware validation.
+
+Per-target workflow artifacts include `build-manifest.txt` for build
+provenance. GitHub Releases publish only the kernel image and headers packages.
