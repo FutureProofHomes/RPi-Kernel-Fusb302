@@ -1,20 +1,18 @@
-# RPi Kernel FUSB302
+# RPi Kernel FUSB302: Bookworm
 
-Builds Debian packages for Raspberry Pi kernels with FUSB302 USB-C Power
-Delivery support enabled for Satellite1.
+This `release/bookworm` branch builds the Debian 12 Bookworm Raspberry Pi
+kernel with FUSB302 USB-C Power Delivery support for Satellite1.
 
-## Supported Targets
+## Kernel
 
-| Target | OS track | Source ref | Kernel version | Package suffix |
-| --- | --- | --- | --- | --- |
-| `bookworm` | Raspberry Pi OS Legacy / Debian 12 | `6d15a1029d425b15c59463910ebdccc4afe760d6` | 6.12.96 | `-fusb302-bookworm-rpi-v8` |
-| `trixie` | Raspberry Pi OS Current / Debian 13 | `stable_20260609` | 6.18.34 | `-fusb302-trixie-rpi-v8` |
+| Source ref | Kernel version | Package suffix |
+| --- | --- | --- |
+| `6d15a1029d425b15c59463910ebdccc4afe760d6` | 6.12.96 | `-fusb302-bookworm-rpi-v8` |
 
-The source ref is the only source-selection input. The build derives and
-checks the kernel version after checkout. A manifest records the resolved
-commit for every package build.
+The build checks the version after checkout and records the resolved commit in
+`build-manifest.txt`.
 
-Each target enables these modules:
+The FUSB302 stack is enabled as modules:
 
 ```text
 CONFIG_TYPEC=m
@@ -28,51 +26,38 @@ CONFIG_TYPEC_FUSB302=m
 Docker, Buildx, and an ARM64-capable Docker host are required.
 
 ```sh
-make deb TARGET=bookworm
-make deb TARGET=trixie
+make deb
 ```
 
-`trixie` is the default target, so `make deb` builds the Trixie package.
-
-Artifacts are written to `out/<target>/`, together with
-`build-manifest.txt`. Each build exports the kernel image and matching headers
-package; `linux-libc-dev` is not published. The package names are derived from
-the selected source, for example:
+Artifacts are written to `out/`:
 
 ```text
 linux-image-6.12.96-fusb302-bookworm-rpi-v8_2_arm64.deb
 linux-headers-6.12.96-fusb302-bookworm-rpi-v8_2_arm64.deb
-linux-image-6.18.34-fusb302-trixie-rpi-v8_2_arm64.deb
-linux-headers-6.18.34-fusb302-trixie-rpi-v8_2_arm64.deb
+build-manifest.txt
 ```
+
+`linux-libc-dev` is not exported.
 
 ## Installation
 
-Install the image package with APT so dependencies are resolved normally:
-
 ```sh
-sudo apt install ./linux-image-<release>_2_arm64.deb
+sudo apt install ./linux-image-6.12.96-fusb302-bookworm-rpi-v8_2_arm64.deb
 ```
 
-Install the matching `linux-headers-<release>` package only when the system
-uses DKMS or builds other out-of-tree kernel modules.
+Install the matching headers package only when the system uses DKMS or builds
+other out-of-tree kernel modules.
 
-Debian's `raspi-firmware` package provides the kernel post-install hook. It
-copies the newest `-rpi-v8` image to `/boot/firmware/kernel8.img`. After
-installation, reboot and verify the selected release:
+`raspi-firmware` installs the kernel image as `/boot/firmware/kernel8.img`.
+Reboot and verify the release:
 
 ```sh
 uname -r
 ```
 
-Keep the previous kernel installed until boot, FUSB302 binding, and the USB-C
-PD contract are validated.
-
 ## Release Policy
 
-CI builds Bookworm and Trixie on every change and publishes both only from a
-repository release tag. The Raspberry Pi Linux source refs are updated only
-through a reviewed change followed by hardware validation.
-
-Per-target workflow artifacts include `build-manifest.txt` for build
-provenance. GitHub Releases publish only the kernel image and headers packages.
+Pushes and pull requests targeting `release/bookworm` build only Bookworm.
+Create the tag `6.12.96-fusb302-bookworm-rpi-v8-2` on an approved commit to
+publish its image and headers packages as one GitHub Release. Per-run workflow
+artifacts also include `build-manifest.txt` for provenance.

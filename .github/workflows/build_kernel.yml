@@ -2,16 +2,15 @@ name: Build Kernel
 
 on:
   push:
+    branches: [release/bookworm]
+    tags: ['*-bookworm-rpi-v8-*']
   pull_request:
+    branches: [release/bookworm]
   workflow_dispatch:
 
 jobs:
   build:
     runs-on: ubuntu-24.04-arm
-    strategy:
-      fail-fast: false
-      matrix:
-        target: [bookworm, trixie]
     steps:
       - uses: actions/checkout@v4
 
@@ -19,13 +18,13 @@ jobs:
         with:
           install: true
 
-      - name: Build ${{ matrix.target }} kernel packages
-        run: make deb TARGET=${{ matrix.target }}
+      - name: Build Bookworm kernel packages
+        run: make deb
 
       - uses: actions/upload-artifact@v4
         with:
-          name: kernel-${{ matrix.target }}
-          path: out/${{ matrix.target }}/
+          name: kernel-bookworm
+          path: out/
           if-no-files-found: error
 
   release:

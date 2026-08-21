@@ -1,7 +1,4 @@
-ARG DEBIAN_RELEASE=trixie
-FROM debian:${DEBIAN_RELEASE}
-
-ARG KERNEL_REF
+FROM debian:bookworm
 
 ENV DEBIAN_FRONTEND=noninteractive
 
@@ -29,11 +26,10 @@ RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y \
 
 WORKDIR /usr/src
 
-# Fetch the selected tag or immutable commit without following a moving branch.
-RUN test -n "${KERNEL_REF}" \
-    && git init rpi-linux \
+# Fetch the Bookworm kernel source at its immutable commit.
+RUN git init rpi-linux \
     && git -C rpi-linux remote add origin https://github.com/raspberrypi/linux.git \
-    && git -C rpi-linux fetch --depth=1 origin "${KERNEL_REF}" \
+    && git -C rpi-linux fetch --depth=1 origin 6d15a1029d425b15c59463910ebdccc4afe760d6 \
     && git -C rpi-linux checkout --detach FETCH_HEAD
 
 WORKDIR /usr/src/rpi-linux
