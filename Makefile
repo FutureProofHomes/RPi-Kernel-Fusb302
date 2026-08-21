@@ -2,8 +2,21 @@
 
 # ----- Configuration -------------------------------------------------------
 DOCKER        ?= docker
-IMAGE_NAME    ?= rpi-kernel-builder
 PLATFORM      ?= linux/arm64
+TARGET        ?= trixie
+
+include targets.mk
+
+VALID_TARGETS := bookworm trixie
+ifeq ($(filter $(TARGET),$(VALID_TARGETS)),)
+$(error Unsupported TARGET '$(TARGET)'; choose one of: $(VALID_TARGETS))
+endif
+
+TARGET_UPPER := $(shell printf '%s' '$(TARGET)' | tr '[:lower:]' '[:upper:]')
+DEBIAN_RELEASE ?= $($(TARGET_UPPER)_DEBIAN_RELEASE)
+KERNEL_REF ?= $($(TARGET_UPPER)_KERNEL_REF)
+EXPECTED_KERNEL_VERSION ?= $($(TARGET_UPPER)_EXPECTED_KERNEL_VERSION)
+IMAGE_NAME ?= rpi-kernel-builder-$(TARGET)
 
 # Path to kernel config on the host (override with: make deb CONFIG=/path/to/config)
 THIS_MAKEFILE := $(abspath $(lastword $(MAKEFILE_LIST)))
@@ -11,11 +24,11 @@ MAKE_DIR      := $(dir $(THIS_MAKEFILE))
 CONFIG        ?= $(MAKE_DIR)/config/kernel.config
 
 # Where to put the resulting .deb files
-OUT_DIR       ?= $(PWD)/out
+OUT_DIR       ?= $(PWD)/out/$(TARGET)
 
 # Extra env you might want to pass into the build script
 # e.g.: make deb LOCALVERSION=-fusb302 KDEB_PKGVERSION=2
-LOCALVERSION    ?= -fusb302-rpi-v8
+LOCALVERSION    ?= $($(TARGET_UPPER)_LOCALVERSION)
 EXTRAVERSION    ?= ""
 KDEB_PKGVERSION ?= 2
 # ----- Targets -------------------------------------------------------------
@@ -32,6 +45,10 @@ help:
 	@echo ""
 	@echo "Variables (override like: make deb CONFIG=/path/to/config):"
 	@echo "  CONFIG=$(CONFIG)"
+	@echo "  TARGET=$(TARGET)"
+	@echo "  DEBIAN_RELEASE=$(DEBIAN_RELEASE)"
+	@echo "  KERNEL_REF=$(KERNEL_REF)"
+	@echo "  EXPECTED_KERNEL_VERSION=$(EXPECTED_KERNEL_VERSION)"
 	@echo "  OUT_DIR=$(OUT_DIR)"
 	@echo "  IMAGE_NAME=$(IMAGE_NAME)"
 	@echo "  PLATFORM=$(PLATFORM)"
@@ -40,7 +57,10 @@ help:
 
 # Build the Docker image with the kernel tree and build script
 image: Dockerfile build-rpi-kernel-deb.sh
-	$(DOCKER) buildx build --platform=$(PLATFORM) --load -t $(IMAGE_NAME) .
+	$(DOCKER) buildx build --platform=$(PLATFORM) --load \
+		--build-arg DEBIAN_RELEASE="$(DEBIAN_RELEASE)" \
+		--build-arg KERNEL_REF="$(KERNEL_REF)" \
+		-t $(IMAGE_NAME) .
 
 # Main target: build .deb packages via Docker
 deb: image
@@ -55,6 +75,9 @@ deb: image
 		-e LOCALVERSION="$(LOCALVERSION)" \
 		-e EXTRAVERSION="$(EXTRAVERSION)" \
 		-e KDEB_PKGVERSION="$(KDEB_PKGVERSION)" \
+		-e TARGET="$(TARGET)" \
+		-e KERNEL_REF="$(KERNEL_REF)" \
+		-e EXPECTED_KERNEL_VERSION="$(EXPECTED_KERNEL_VERSION)" \
 		-v "$(dir $(CONFIG))":/config:ro \
 		-v "$(OUT_DIR)":/out \
 		$(IMAGE_NAME) \
@@ -66,6 +89,9 @@ shell: image
 	$(DOCKER) run --rm -it \
 		-e LOCALVERSION="$(LOCALVERSION)" \
 		-e KDEB_PKGVERSION="$(KDEB_PKGVERSION)" \
+		-e TARGET="$(TARGET)" \
+		-e KERNEL_REF="$(KERNEL_REF)" \
+		-e EXPECTED_KERNEL_VERSION="$(EXPECTED_KERNEL_VERSION)" \
 		-v "$(dir $(CONFIG))":/config:ro \
 		-v "$(OUT_DIR)":/out \
 		$(IMAGE_NAME) \
