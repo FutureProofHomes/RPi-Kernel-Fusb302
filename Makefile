@@ -4,8 +4,8 @@
 DOCKER        ?= docker
 PLATFORM      ?= linux/arm64
 override TARGET := trixie
-override KERNEL_REF := stable_20260609
-override EXPECTED_KERNEL_VERSION := 6.18.34
+override KERNEL_REF := stable_20260724
+override EXPECTED_KERNEL_VERSION := 6.18.39
 IMAGE_NAME ?= rpi-kernel-builder-trixie
 
 # Path to kernel config on the host (override with: make deb CONFIG=/path/to/config)

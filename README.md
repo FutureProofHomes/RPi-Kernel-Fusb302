@@ -12,7 +12,7 @@ with FUSB302 USB-C Power Delivery support for Satellite1.
 
 | Source ref | Kernel version | Package suffix |
 | --- | --- | --- |
-| `stable_20260609` | 6.18.34 | `-fusb302-trixie-rpi-v8` |
+| `stable_20260724` | 6.18.39 | `-fusb302-trixie-rpi-v8` |
 
 The build checks the version after checkout and records the resolved commit in
 `build-manifest.txt`.
@@ -37,8 +37,8 @@ make deb
 Artifacts are written to `out/`:
 
 ```text
-linux-image-6.18.34-fusb302-trixie-rpi-v8_1_arm64.deb
-linux-headers-6.18.34-fusb302-trixie-rpi-v8_1_arm64.deb
+linux-image-6.18.39-fusb302-trixie-rpi-v8_1_arm64.deb
+linux-headers-6.18.39-fusb302-trixie-rpi-v8_1_arm64.deb
 build-manifest.txt
 ```
 
@@ -47,7 +47,7 @@ build-manifest.txt
 ## Installation
 
 ```sh
-sudo apt install ./linux-image-6.18.34-fusb302-trixie-rpi-v8_1_arm64.deb
+sudo apt install ./linux-image-6.18.39-fusb302-trixie-rpi-v8_1_arm64.deb
 ```
 
 Install the matching headers package only when the system uses DKMS or builds
@@ -62,7 +62,7 @@ uname -r
 
 ## Release Policy
 
-Create the tag `6.18.34-fusb302-trixie-rpi-v8-1` on an approved commit to
+Create the tag `6.18.39-fusb302-trixie-rpi-v8-1` on an approved commit to
 build and publish its image and headers packages as one GitHub Release. Use
 manual workflow dispatch for a build without creating a release. Per-run
 workflow artifacts also include `build-manifest.txt` for provenance.

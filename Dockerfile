@@ -29,7 +29,7 @@ WORKDIR /usr/src
 # Fetch the Trixie kernel source without following a moving branch.
 RUN git init rpi-linux \
     && git -C rpi-linux remote add origin https://github.com/raspberrypi/linux.git \
-    && git -C rpi-linux fetch --depth=1 origin stable_20260609 \
+    && git -C rpi-linux fetch --depth=1 origin stable_20260724 \
     && git -C rpi-linux checkout --detach FETCH_HEAD
 
 WORKDIR /usr/src/rpi-linux
