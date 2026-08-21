@@ -1,5 +1,10 @@
 # RPi Kernel FUSB302: Trixie
 
+> **Deprecation notice:** Raspberry Pi Linux includes FUSB302 USB-C PD support
+> from `6.18.42`. Once that version is available through the Trixie APT
+> repository and validated on Satellite1, this custom Trixie kernel will be
+> deprecated in favor of the stock `linux-image-rpi-v8` package.
+
 This `trixie` branch builds the Debian 13 Trixie Raspberry Pi kernel
 with FUSB302 USB-C Power Delivery support for Satellite1.
 
