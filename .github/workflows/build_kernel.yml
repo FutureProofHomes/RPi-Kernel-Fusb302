@@ -2,10 +2,10 @@ name: Build Kernel
 
 on:
   push:
-    branches: [release/bookworm]
+    branches: [bookworm]
     tags: ['*-bookworm-rpi-v8-*']
   pull_request:
-    branches: [release/bookworm]
+    branches: [bookworm]
   workflow_dispatch:
 
 jobs:

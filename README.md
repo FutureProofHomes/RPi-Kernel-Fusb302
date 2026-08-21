@@ -1,6 +1,6 @@
 # RPi Kernel FUSB302: Bookworm
 
-This `release/bookworm` branch builds the Debian 12 Bookworm Raspberry Pi
+This `bookworm` branch builds the Debian 12 Bookworm Raspberry Pi
 kernel with FUSB302 USB-C Power Delivery support for Satellite1.
 
 ## Kernel
@@ -57,7 +57,7 @@ uname -r
 
 ## Release Policy
 
-Pushes and pull requests targeting `release/bookworm` build only Bookworm.
+Pushes and pull requests targeting `bookworm` build only Bookworm.
 Create the tag `6.12.96-fusb302-bookworm-rpi-v8-2` on an approved commit to
 publish its image and headers packages as one GitHub Release. Per-run workflow
 artifacts also include `build-manifest.txt` for provenance.
