@@ -57,7 +57,7 @@ uname -r
 
 ## Release Policy
 
-Pushes and pull requests targeting `trixie` build only Trixie. Create
-the tag `6.18.34-fusb302-trixie-rpi-v8-1` on an approved commit to publish its
-image and headers packages as one GitHub Release. Per-run workflow artifacts
-also include `build-manifest.txt` for provenance.
+Create the tag `6.18.34-fusb302-trixie-rpi-v8-1` on an approved commit to
+build and publish its image and headers packages as one GitHub Release. Use
+manual workflow dispatch for a build without creating a release. Per-run
+workflow artifacts also include `build-manifest.txt` for provenance.
