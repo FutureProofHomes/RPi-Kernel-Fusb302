@@ -32,8 +32,8 @@ make deb
 Artifacts are written to `out/`:
 
 ```text
-linux-image-6.12.96-fusb302-bookworm-rpi-v8_2_arm64.deb
-linux-headers-6.12.96-fusb302-bookworm-rpi-v8_2_arm64.deb
+linux-image-6.12.96-fusb302-bookworm-rpi-v8_1_arm64.deb
+linux-headers-6.12.96-fusb302-bookworm-rpi-v8_1_arm64.deb
 build-manifest.txt
 ```
 
@@ -42,7 +42,7 @@ build-manifest.txt
 ## Installation
 
 ```sh
-sudo apt install ./linux-image-6.12.96-fusb302-bookworm-rpi-v8_2_arm64.deb
+sudo apt install ./linux-image-6.12.96-fusb302-bookworm-rpi-v8_1_arm64.deb
 ```
 
 Install the matching headers package only when the system uses DKMS or builds
@@ -58,6 +58,6 @@ uname -r
 ## Release Policy
 
 Pushes and pull requests targeting `bookworm` build only Bookworm.
-Create the tag `6.12.96-fusb302-bookworm-rpi-v8-2` on an approved commit to
+Create the tag `6.12.96-fusb302-bookworm-rpi-v8-1` on an approved commit to
 publish its image and headers packages as one GitHub Release. Per-run workflow
 artifacts also include `build-manifest.txt` for provenance.
