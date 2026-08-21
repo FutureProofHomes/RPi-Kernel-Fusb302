@@ -20,7 +20,7 @@ OUT_DIR       ?= $(PWD)/out
 # e.g.: make deb LOCALVERSION=-fusb302 KDEB_PKGVERSION=2
 override LOCALVERSION := -fusb302-trixie-rpi-v8
 EXTRAVERSION    ?= ""
-KDEB_PKGVERSION ?= 2
+KDEB_PKGVERSION ?= 1
 # ----- Targets -------------------------------------------------------------
 
 .PHONY: help image deb shell clean-out clean-all
