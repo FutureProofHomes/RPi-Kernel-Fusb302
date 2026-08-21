@@ -57,7 +57,7 @@ uname -r
 
 ## Release Policy
 
-Pushes and pull requests targeting `bookworm` build only Bookworm.
 Create the tag `6.12.96-fusb302-bookworm-rpi-v8-1` on an approved commit to
-publish its image and headers packages as one GitHub Release. Per-run workflow
-artifacts also include `build-manifest.txt` for provenance.
+build and publish its image and headers packages as one GitHub Release. Use
+manual workflow dispatch for a build without creating a release. Per-run
+workflow artifacts also include `build-manifest.txt` for provenance.
