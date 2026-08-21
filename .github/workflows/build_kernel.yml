@@ -2,16 +2,15 @@ name: Build Kernel
 
 on:
   push:
+    branches: [release/trixie]
+    tags: ['*-trixie-rpi-v8-*']
   pull_request:
+    branches: [release/trixie]
   workflow_dispatch:
 
 jobs:
   build:
     runs-on: ubuntu-24.04-arm
-    strategy:
-      fail-fast: false
-      matrix:
-        target: [bookworm, trixie]
     steps:
       - uses: actions/checkout@v4
 
@@ -19,13 +18,13 @@ jobs:
         with:
           install: true
 
-      - name: Build ${{ matrix.target }} kernel packages
-        run: make deb TARGET=${{ matrix.target }}
+      - name: Build Trixie kernel packages
+        run: make deb
 
       - uses: actions/upload-artifact@v4
         with:
-          name: kernel-${{ matrix.target }}
-          path: out/${{ matrix.target }}/
+          name: kernel-trixie
+          path: out/
           if-no-files-found: error
 
   release:

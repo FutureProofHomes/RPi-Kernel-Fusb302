@@ -1,7 +1,4 @@
-ARG DEBIAN_RELEASE=trixie
-FROM debian:${DEBIAN_RELEASE}
-
-ARG KERNEL_REF
+FROM debian:trixie
 
 ENV DEBIAN_FRONTEND=noninteractive
 
@@ -29,11 +26,10 @@ RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y \
 
 WORKDIR /usr/src
 
-# Fetch the selected tag or immutable commit without following a moving branch.
-RUN test -n "${KERNEL_REF}" \
-    && git init rpi-linux \
+# Fetch the Trixie kernel source without following a moving branch.
+RUN git init rpi-linux \
     && git -C rpi-linux remote add origin https://github.com/raspberrypi/linux.git \
-    && git -C rpi-linux fetch --depth=1 origin "${KERNEL_REF}" \
+    && git -C rpi-linux fetch --depth=1 origin stable_20260609 \
     && git -C rpi-linux checkout --detach FETCH_HEAD
 
 WORKDIR /usr/src/rpi-linux
