@@ -2,10 +2,10 @@ name: Build Kernel
 
 on:
   push:
-    branches: [release/trixie]
+    branches: [trixie]
     tags: ['*-trixie-rpi-v8-*']
   pull_request:
-    branches: [release/trixie]
+    branches: [trixie]
   workflow_dispatch:
 
 jobs:

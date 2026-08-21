@@ -1,6 +1,6 @@
 # RPi Kernel FUSB302: Trixie
 
-This `release/trixie` branch builds the Debian 13 Trixie Raspberry Pi kernel
+This `trixie` branch builds the Debian 13 Trixie Raspberry Pi kernel
 with FUSB302 USB-C Power Delivery support for Satellite1.
 
 ## Kernel
@@ -57,7 +57,7 @@ uname -r
 
 ## Release Policy
 
-Pushes and pull requests targeting `release/trixie` build only Trixie. Create
+Pushes and pull requests targeting `trixie` build only Trixie. Create
 the tag `6.18.34-fusb302-trixie-rpi-v8-2` on an approved commit to publish its
 image and headers packages as one GitHub Release. Per-run workflow artifacts
 also include `build-manifest.txt` for provenance.
