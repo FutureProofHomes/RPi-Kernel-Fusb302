@@ -37,8 +37,9 @@ make deb
 Artifacts are written to `out/`:
 
 ```text
-linux-image-6.18.39-fusb302-trixie-rpi-v8_1_arm64.deb
-linux-headers-6.18.39-fusb302-trixie-rpi-v8_1_arm64.deb
+linux-image-6.18.39-fusb302-trixie-rpi-v8_2_arm64.deb
+linux-headers-6.18.39-fusb302-trixie-rpi-v8_2_arm64.deb
+linux-image-fusb302-trixie-rpi-v8_6.18.39-2_arm64.deb
 build-manifest.txt
 ```
 
@@ -47,11 +48,17 @@ build-manifest.txt
 ## Installation
 
 ```sh
-sudo apt install ./linux-image-6.18.39-fusb302-trixie-rpi-v8_1_arm64.deb
+sudo apt install \
+  ./linux-image-6.18.39-fusb302-trixie-rpi-v8_2_arm64.deb \
+  ./linux-image-fusb302-trixie-rpi-v8_6.18.39-2_arm64.deb
 ```
 
 Install the matching headers package only when the system uses DKMS or builds
 other out-of-tree kernel modules.
+
+The stable `linux-image-fusb302-trixie-rpi-v8` meta package depends on the
+release-specific kernel image. Install both packages together when using GitHub
+Release assets directly.
 
 `raspi-firmware` installs the kernel image as `/boot/firmware/kernel8.img`.
 Reboot and verify the release:
@@ -60,9 +67,29 @@ Reboot and verify the release:
 uname -r
 ```
 
+## Versioning
+
+`packaging/linux-image-fusb302-trixie-rpi-v8/debian/changelog` is the release
+version source for the stable meta package. Its version has this format:
+
+```text
+<kernel-version>-<image-package-revision>
+```
+
+Before a release, update it locally and commit the result:
+
+```sh
+make update-meta-changelog NEW_KDEB_PKGVERSION=2
+```
+
+The build derives the versioned image package revision from that committed
+changelog and verifies that its kernel version matches the checked-out source.
+
 ## Release Policy
 
-Create the tag `6.18.39-fusb302-trixie-rpi-v8-1` on an approved commit to
-build and publish its image and headers packages as one GitHub Release. Use
-manual workflow dispatch for a build without creating a release. Per-run
-workflow artifacts also include `build-manifest.txt` for provenance.
+Create the tag `6.18.39-fusb302-trixie-rpi-v8-2` on an approved `trixie`
+commit to build and publish its image, headers, and stable meta package as one
+GitHub Release. CI verifies that the tag matches the kernel release and the
+changelog-derived image package revision. Use manual workflow dispatch for a
+build without creating a release. Per-run workflow artifacts also include
+`build-manifest.txt` for provenance.

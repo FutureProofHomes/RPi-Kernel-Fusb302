@@ -19,6 +19,7 @@ RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y \
     fakeroot \
     dpkg-dev \
     debhelper \
+    devscripts \
     python3 \
     rsync \
     lsb-release \

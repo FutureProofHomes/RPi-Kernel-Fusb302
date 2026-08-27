@@ -7,6 +7,7 @@ override TARGET := trixie
 override KERNEL_REF := stable_20260724
 override EXPECTED_KERNEL_VERSION := 6.18.39
 IMAGE_NAME ?= rpi-kernel-builder-trixie
+META_PACKAGE := linux-image-fusb302-$(TARGET)-rpi-v8
 
 # Path to kernel config on the host (override with: make deb CONFIG=/path/to/config)
 THIS_MAKEFILE := $(abspath $(lastword $(MAKEFILE_LIST)))
@@ -15,15 +16,16 @@ CONFIG        ?= $(MAKE_DIR)/config/kernel.config
 
 # Where to put the resulting .deb files
 OUT_DIR       ?= $(PWD)/out
+META_PACKAGING_DIR := $(MAKE_DIR)/packaging/$(META_PACKAGE)
+NEW_KDEB_PKGVERSION ?=
 
 # Extra env you might want to pass into the build script
-# e.g.: make deb LOCALVERSION=-fusb302 KDEB_PKGVERSION=2
+# e.g.: make deb LOCALVERSION=-fusb302
 override LOCALVERSION := -fusb302-trixie-rpi-v8
 EXTRAVERSION    ?= ""
-KDEB_PKGVERSION ?= 1
 # ----- Targets -------------------------------------------------------------
 
-.PHONY: help image deb shell clean-out clean-all
+.PHONY: help image deb shell update-meta-changelog clean-out clean-all
 
 help:
 	@echo "Targets:"
@@ -39,7 +41,8 @@ help:
 	@echo "  IMAGE_NAME=$(IMAGE_NAME)"
 	@echo "  PLATFORM=$(PLATFORM)"
 	@echo "  LOCALVERSION=$(LOCALVERSION)"
-	@echo "  KDEB_PKGVERSION=$(KDEB_PKGVERSION)"
+	@echo "  META_PACKAGE=$(META_PACKAGE)"
+	@echo "  make update-meta-changelog NEW_KDEB_PKGVERSION=<revision>"
 
 # Build the Docker image with the kernel tree and build script
 image: Dockerfile build-rpi-kernel-deb.sh
@@ -58,11 +61,15 @@ deb: image
 	$(DOCKER) run --rm --platform=$(PLATFORM) \
 		-e LOCALVERSION="$(LOCALVERSION)" \
 		-e EXTRAVERSION="$(EXTRAVERSION)" \
-		-e KDEB_PKGVERSION="$(KDEB_PKGVERSION)" \
 		-e TARGET="$(TARGET)" \
 		-e KERNEL_REF="$(KERNEL_REF)" \
 		-e EXPECTED_KERNEL_VERSION="$(EXPECTED_KERNEL_VERSION)" \
+		-e META_PACKAGE="$(META_PACKAGE)" \
+		-e META_CHANGELOG="/meta/debian/changelog" \
+		-e META_COPYRIGHT="/meta/debian/copyright" \
+		-e RELEASE_TAG="$(RELEASE_TAG)" \
 		-v "$(dir $(CONFIG))":/config:ro \
+		-v "$(META_PACKAGING_DIR)":/meta:ro \
 		-v "$(OUT_DIR)":/out \
 		$(IMAGE_NAME) \
 		/usr/local/bin/build-rpi-kernel-deb.sh
@@ -72,14 +79,31 @@ deb: image
 shell: image
 	$(DOCKER) run --rm -it \
 		-e LOCALVERSION="$(LOCALVERSION)" \
-		-e KDEB_PKGVERSION="$(KDEB_PKGVERSION)" \
 		-e TARGET="$(TARGET)" \
 		-e KERNEL_REF="$(KERNEL_REF)" \
 		-e EXPECTED_KERNEL_VERSION="$(EXPECTED_KERNEL_VERSION)" \
+		-e META_PACKAGE="$(META_PACKAGE)" \
+		-e META_CHANGELOG="/meta/debian/changelog" \
+		-e META_COPYRIGHT="/meta/debian/copyright" \
 		-v "$(dir $(CONFIG))":/config:ro \
+		-v "$(META_PACKAGING_DIR)":/meta:ro \
 		-v "$(OUT_DIR)":/out \
 		$(IMAGE_NAME) \
 		/bin/bash
+
+update-meta-changelog: image
+	@if [ -z "$(NEW_KDEB_PKGVERSION)" ]; then \
+		echo "ERROR: set NEW_KDEB_PKGVERSION to the next image package revision." >&2; \
+		exit 1; \
+	fi
+	$(DOCKER) run --rm --platform=$(PLATFORM) \
+		-e META_VERSION="$(EXPECTED_KERNEL_VERSION)-$(NEW_KDEB_PKGVERSION)" \
+		-v "$(META_PACKAGING_DIR)":/meta \
+		$(IMAGE_NAME) \
+		bash -lc 'export DEBFULLNAME="Future Proof Homes" DEBEMAIL="info@futureproofhomes.com"; \
+		  cd /meta; \
+		  dch --newversion "$$META_VERSION" --distribution unstable --force-distribution \
+		    "Track the matching FUSB302 Trixie kernel image."'
 
 clean-out:
 	rm -rf "$(OUT_DIR)"
