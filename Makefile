@@ -100,7 +100,7 @@ update-meta-changelog: image
 		-e META_VERSION="$(EXPECTED_KERNEL_VERSION)-$(NEW_KDEB_PKGVERSION)" \
 		-v "$(META_PACKAGING_DIR)":/meta \
 		$(IMAGE_NAME) \
-		bash -lc 'export DEBFULLNAME="Future Proof Homes" DEBEMAIL="info@futureproofhomes.com"; \
+		bash -lc 'export DEBFULLNAME="FutureProofHomes Inc." DEBEMAIL="info@futureproofhomes.com"; \
 		  cd /meta; \
 		  dch --newversion "$$META_VERSION" --distribution unstable --force-distribution \
 		    "Track the matching FUSB302 Trixie kernel image."'
