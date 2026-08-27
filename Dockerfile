@@ -19,6 +19,7 @@ RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y \
     fakeroot \
     dpkg-dev \
     debhelper \
+    devscripts \
     python3 \
     rsync \
     lsb-release \
@@ -37,9 +38,10 @@ WORKDIR /usr/src/rpi-linux
 COPY builddeb.patch /usr/src/rpi-linux
 RUN patch -p1 < builddeb.patch
 
-# Add a helper script that will build the kernel + .deb packages
+# Add helpers for the kernel and meta-package build stages.
 COPY build-rpi-kernel-deb.sh /usr/local/bin/build-rpi-kernel-deb.sh
-RUN chmod +x /usr/local/bin/build-rpi-kernel-deb.sh
+COPY build-meta-package.sh /usr/local/bin/build-meta-package.sh
+RUN chmod +x /usr/local/bin/build-rpi-kernel-deb.sh /usr/local/bin/build-meta-package.sh
 
 # Default to an interactive shell so you can run the build script with args
 # ENTRYPOINT ["/bin/bash"]
