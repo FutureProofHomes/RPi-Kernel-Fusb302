@@ -102,7 +102,7 @@ update-meta-changelog: image
 		$(IMAGE_NAME) \
 		bash -lc 'export DEBFULLNAME="FutureProofHomes Inc." DEBEMAIL="info@futureproofhomes.net"; \
 		  cd /meta; \
-		  dch --newversion "$$META_VERSION" --distribution unstable --force-distribution \
+		  dch --newversion "$$META_VERSION" --distribution trixie --force-distribution \
 		    "Track the matching FUSB302 Trixie kernel image."'
 
 clean-out:
