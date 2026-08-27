@@ -1,0 +1,11 @@
+linux-image-fusb302-trixie-rpi-v8 (6.18.39-2) trixie; urgency=medium
+
+  * Track the matching FUSB302 Trixie kernel image.
+
+ -- FutureProofHomes Inc. <info@futureproofhomes.net>  Thu, 27 Aug 2026 08:51:28 +0000
+
+linux-image-fusb302-trixie-rpi-v8 (6.18.39-1) trixie; urgency=medium
+
+  * Initial meta package release.
+
+ -- FutureProofHomes Inc. <info@futureproofhomes.net>  Thu, 27 Aug 2026 12:00:00 +0000
