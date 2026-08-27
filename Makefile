@@ -44,8 +44,8 @@ help:
 	@echo "  META_PACKAGE=$(META_PACKAGE)"
 	@echo "  make update-meta-changelog NEW_KDEB_PKGVERSION=<revision>"
 
-# Build the Docker image with the kernel tree and build script
-image: Dockerfile build-rpi-kernel-deb.sh
+# Build the Docker image with the kernel tree and package build scripts
+image: Dockerfile build-rpi-kernel-deb.sh build-meta-package.sh
 	$(DOCKER) buildx build --platform=$(PLATFORM) --load \
 		-t $(IMAGE_NAME) .
 
@@ -58,21 +58,35 @@ deb: image
 	fi
 	mkdir -p "$(OUT_DIR)"
 	echo "*" > "$(OUT_DIR)"/.gitignore
+	@KDEB_PKGVERSION="$$($(DOCKER) run --rm --platform=$(PLATFORM) \
+		-e META_PACKAGE="$(META_PACKAGE)" \
+		-e META_CHANGELOG="/meta/debian/changelog" \
+		-e EXPECTED_KERNEL_VERSION="$(EXPECTED_KERNEL_VERSION)" \
+		-v "$(META_PACKAGING_DIR)":/meta:ro \
+		$(IMAGE_NAME) \
+		/usr/local/bin/build-meta-package.sh --print-kdeb-pkgversion)" && \
 	$(DOCKER) run --rm --platform=$(PLATFORM) \
 		-e LOCALVERSION="$(LOCALVERSION)" \
 		-e EXTRAVERSION="$(EXTRAVERSION)" \
+		-e KDEB_PKGVERSION="$$KDEB_PKGVERSION" \
 		-e TARGET="$(TARGET)" \
 		-e KERNEL_REF="$(KERNEL_REF)" \
+		-e EXPECTED_KERNEL_VERSION="$(EXPECTED_KERNEL_VERSION)" \
+		-v "$(dir $(CONFIG))":/config:ro \
+		-v "$(OUT_DIR)":/out \
+		$(IMAGE_NAME) \
+		/usr/local/bin/build-rpi-kernel-deb.sh && \
+	$(DOCKER) run --rm --platform=$(PLATFORM) \
+		-e TARGET="$(TARGET)" \
 		-e EXPECTED_KERNEL_VERSION="$(EXPECTED_KERNEL_VERSION)" \
 		-e META_PACKAGE="$(META_PACKAGE)" \
 		-e META_CHANGELOG="/meta/debian/changelog" \
 		-e META_COPYRIGHT="/meta/debian/copyright" \
 		-e RELEASE_TAG="$(RELEASE_TAG)" \
-		-v "$(dir $(CONFIG))":/config:ro \
 		-v "$(META_PACKAGING_DIR)":/meta:ro \
 		-v "$(OUT_DIR)":/out \
 		$(IMAGE_NAME) \
-		/usr/local/bin/build-rpi-kernel-deb.sh
+		/usr/local/bin/build-meta-package.sh
 
 
 # Drop into a shell inside the build container (for debugging / manual makes)
@@ -82,11 +96,7 @@ shell: image
 		-e TARGET="$(TARGET)" \
 		-e KERNEL_REF="$(KERNEL_REF)" \
 		-e EXPECTED_KERNEL_VERSION="$(EXPECTED_KERNEL_VERSION)" \
-		-e META_PACKAGE="$(META_PACKAGE)" \
-		-e META_CHANGELOG="/meta/debian/changelog" \
-		-e META_COPYRIGHT="/meta/debian/copyright" \
 		-v "$(dir $(CONFIG))":/config:ro \
-		-v "$(META_PACKAGING_DIR)":/meta:ro \
 		-v "$(OUT_DIR)":/out \
 		$(IMAGE_NAME) \
 		/bin/bash

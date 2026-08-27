@@ -17,6 +17,11 @@ with FUSB302 USB-C Power Delivery support for Satellite1.
 The build checks the version after checkout and records the resolved commit in
 `build-manifest.txt`.
 
+`make deb` runs separate kernel and meta-package build stages. The kernel stage
+builds the image and headers packages, then writes a handoff manifest. The meta
+stage reads the committed changelog, validates that manifest, and creates the
+meta package with an exact dependency on the image package.
+
 The FUSB302 stack is enabled as modules:
 
 ```text
@@ -82,8 +87,9 @@ Before a release, update it locally and commit the result:
 make update-meta-changelog NEW_KDEB_PKGVERSION=2
 ```
 
-The build derives the versioned image package revision from that committed
-changelog and verifies that its kernel version matches the checked-out source.
+The meta-package stage derives the versioned image package revision from that
+committed changelog and verifies that its kernel version matches the kernel
+build manifest.
 
 ## Release Policy
 
